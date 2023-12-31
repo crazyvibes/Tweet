@@ -1,9 +1,11 @@
 package com.crazyvibes.tweet.screens
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -23,40 +25,58 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.crazyvibes.tweet.R
 import com.crazyvibes.tweet.viewmodel.CategoryViewModel
 
 @Composable
-fun CategoryScreen() {
-    val categoryViewModel:CategoryViewModel = viewModel() //return viewModel object
+fun CategoryScreen(onClick: (category: String) -> Unit) {
+    //val categoryViewModel: CategoryViewModel = viewModel() //return viewModel object
+    val categoryViewModel: CategoryViewModel = hiltViewModel() //return hilt viewModel object, for that added a hilt extra library
     val categories = categoryViewModel.category.collectAsState() // provide a state by using state flow
-    LazyVerticalGrid(columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(8.dp),
-        verticalArrangement = Arrangement.SpaceAround){
-        items(categories.value.distinct()){
-            CategoryItem(category = it)
+    
+    //add loader
+    if(categories.value.isEmpty()){
+        Box (modifier = Modifier.fillMaxSize(1f), contentAlignment = Alignment.Center){
+            Text(text = "Loading...", style = MaterialTheme.typography.h3)
         }
+    }else{
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(8.dp),
+            verticalArrangement = Arrangement.SpaceAround
+        ) {
+            items(categories.value.distinct()) {
+                CategoryItem(category = it, onClick)
+            }
 
+        }
     }
-
 }
 
 @Composable
-fun CategoryItem(category: String) {
-    Box(modifier = with(Modifier) {
-        padding(4.dp)
-        .size(160.dp)
-        .clip(RoundedCornerShape(8.dp))
-        .paint(painter = painterResource(id = R.drawable.wave),
-            contentScale = ContentScale.Crop)
-        .border(1.dp, Color(0xFFEEEEEE))
-    },
-        contentAlignment = Alignment.Center){
-        Text(text = category,
+fun CategoryItem(category: String, onClick: (category: String) -> Unit) {
+    Box(
+        modifier = with(Modifier) {
+            padding(4.dp)
+                .clickable { onClick(category) }
+                .size(160.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .paint(
+                    painter = painterResource(id = R.drawable.wave),
+                    contentScale = ContentScale.Crop
+                )
+                .border(1.dp, Color(0xFFEEEEEE))
+        },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = category,
             fontSize = 18.sp,
             color = Color.White,
             modifier = Modifier.padding(0.dp, 20.dp),
-            style = MaterialTheme.typography.body1)
+            style = MaterialTheme.typography.body1
+        )
     }
 }
